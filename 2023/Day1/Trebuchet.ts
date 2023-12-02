@@ -68,8 +68,8 @@ function calculateSum(data: string): { [key: string]: number } {
 
 async function main() {
 	try {
-		const strings = await readFile('./input.txt');
-		const result = calculateSum(strings);
+		const input = await readFile('./input.txt');
+		const result = calculateSum(input);
 		console.log(`\nTotal\npart1: ${result['part1']}\npart2: ${result['part2']}`);
 	} catch (error) {
 		console.error(error);
