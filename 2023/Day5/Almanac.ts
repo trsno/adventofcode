@@ -61,33 +61,36 @@ const getLocation = (seed: number, input: AlmanacData) => {
 	return numberMapper(humidity, input.humidityToLocation);
 };
 
-const getResults = (input: AlmanacData): { part1: number; part2: number } => {
-	const results = { part1: 0, part2: 0 };
-	const seeds = input.seeds;
-	results.part1 = Math.min(...seeds.map((seed) => getLocation(seed, input)));
-
-	// generate seed ranges
-	let seedRanges: number[][] = [];
+const sliceSeedRanges = (seeds: number[]) => {
+	let output: number[][] = [];
 	for (let i = 0; i < seeds.length; i += 2) {
 		const [start, end] = seeds.slice(i, i + 2);
-		seedRanges.push([start, start + end - 1]);
+		output.push([start, start + end - 1]);
 	}
-	seedRanges.sort((a, b) => a[0] - b[0]);
-	let slicedRanges = [seedRanges[0]];
-	for (let i = 1; i < seedRanges.length; i++) {
-		let current = seedRanges[i];
+
+	output.sort((a, b) => a[0] - b[0]);
+
+	let slicedRanges = [output[0]];
+	for (let i = 1; i < output.length; i++) {
+		let current = output[i];
 		let last = slicedRanges[slicedRanges.length - 1];
 
-		if (last[1] + 1 === current[0] || (current[0] <= last[1] && last[1] <= current[1])) {
-			last[1] = current[1];
+		if (last[1] + 1 >= current[0]) {
+			last[1] = Math.max(last[1], current[1]);
 		} else {
 			slicedRanges.push(current);
 		}
 	}
-	// end of seed ranges
 
-	console.log(seedRanges);
+	return slicedRanges;
+};
 
+const getResults = async (input: AlmanacData): Promise<{ part1: number; part2: number }> => {
+	const results = { part1: 0, part2: 0 };
+	const seeds = input.seeds;
+	results.part1 = Math.min(...seeds.map((seed) => getLocation(seed, input)));
+
+	let seedRanges = sliceSeedRanges(seeds);
 	let lowestLocation = Infinity;
 	for (const [index, range] of seedRanges.entries()) {
 		const [start, end] = range;
@@ -101,7 +104,7 @@ const getResults = (input: AlmanacData): { part1: number; part2: number } => {
 			const value = getLocation(i, input);
 			if (value < lowestLocation) lowestLocation = value;
 
-			// logging
+			// for logging
 			if (i % tenPercent === 0) {
 				console.clear();
 				console.log('[ ', index + 1, '/', seedRanges.length, ' ] processing range of:', start, 'to', end, `(~${Math.floor((end - start) / 1e6)}M)`);
@@ -113,10 +116,10 @@ const getResults = (input: AlmanacData): { part1: number; part2: number } => {
 				}
 				console.log(`[${bar}${whitespace}] ${++step * 10}% done`);
 			}
+			// logging
 		}
 	}
 	results.part2 = lowestLocation;
-
 	return results;
 };
 
@@ -125,7 +128,7 @@ async function main() {
 		const startTime = performance.now();
 		const input = await readFile('./input.txt');
 		const almanacData = getAlmanacData(input);
-		const results = getResults(almanacData);
+		const results = await getResults(almanacData);
 		const time = performance.now() - startTime;
 		console.log(`Part 1: ${results.part1}\nPart 2: ${results.part2}\nTimer: ${time} ms`);
 	} catch (error) {
