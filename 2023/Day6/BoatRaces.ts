@@ -9,7 +9,7 @@ const calculatePossibleWays = (time: number, distance: number) => {
 };
 
 const getResults = (input: string[]): { part1: number; part2: number } => {
-	const [times, distances] = input.map((str, index) => str.match(/\d+/g)!.map((str) => +str));
+	const [times, distances] = input.map((str) => str.match(/\d+/g)!.map((str) => +str));
 	const part1 = times.reduce((acc, time, index) => acc * calculatePossibleWays(time, distances[index]), 1);
 	const [time, distance] = input.map((v) => +v.replace(/\D/g, ''));
 	const part2 = calculatePossibleWays(time, distance);
@@ -22,7 +22,7 @@ async function main() {
 		const input = (await readFile(resolve(__dirname, './input.txt'))).split('\n');
 		const results = getResults(input);
 		const time = performance.now() - startTime;
-		console.log(`Part 1: ${results.part1}\nPart 2: ${results.part2}\nTimer: ${time} ms`);
+		console.log(`Part 1: ${results.part1}\nPart 2: ${results.part2}\nTimer: ${time.toFixed(1)} ms`);
 	} catch (error) {
 		console.error(error);
 	}
